@@ -1,13 +1,16 @@
+import os
+
+from dotenv import load_dotenv, find_dotenv
+
 import db
 
 from aiogram import Dispatcher, Bot, executor, types
 
 from keyboards import get_kb, get_video_cards_ikb, get_profile_kb, get_video_card_ikb
 
+load_dotenv(find_dotenv())
 
-API_TOKEN = '5225759103:AAFMlBh72y_wFVc1nhoCJ9WZ3PXnsNTngGo'
-BOT_NICKNAME = 'best_booot_bot'
-bot = Bot(token=API_TOKEN, parse_mode='HTML')
+bot = Bot(token=os.getenv("TOKEN"), parse_mode='HTML')
 dp = Dispatcher(bot)
 
 
