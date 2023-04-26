@@ -104,7 +104,7 @@ async def cmd_referal(message: types.Message):
                                                  f'⚡️ Кол-во ваших рефералов: {count_referals}\n'
                                                  f'⚡️ Заработано с рефералов: {0}$\n\n'
                                                  f'🔗 Ваша реферальная ссылка:\n'
-                                                 f'➖ https://t.me/{BOT_NICKNAME}?start={message.from_user.id}')
+                                                 f'➖ https://t.me/{os.getenv("BOT_NICKNAME")}?start={message.from_user.id}')
 
 if __name__ == '__main__':
     executor.start_polling(dp, skip_updates=True, on_startup=on_startup)
