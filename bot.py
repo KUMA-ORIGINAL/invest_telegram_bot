@@ -1,7 +1,11 @@
 import os
 
+from aiogram.contrib.fsm_storage.memory import MemoryStorage
+from aiogram.dispatcher import FSMContext
+from aiogram.dispatcher.filters.state import StatesGroup, State
 from dotenv import load_dotenv, find_dotenv
 
+import cryptomus
 import db
 
 from aiogram import Dispatcher, Bot, executor, types
@@ -10,8 +14,9 @@ from keyboards import get_kb, get_video_cards_ikb, get_profile_kb, get_video_car
 
 load_dotenv(find_dotenv())
 
+storage = MemoryStorage()
 bot = Bot(token=os.getenv("TOKEN"), parse_mode='HTML')
-dp = Dispatcher(bot)
+dp = Dispatcher(bot, storage=storage)
 
 
 async def on_startup(_):
@@ -105,6 +110,45 @@ async def cmd_referal(message: types.Message):
                                                  f'⚡️ Заработано с рефералов: {0}$\n\n'
                                                  f'🔗 Ваша реферальная ссылка:\n'
                                                  f'➖ https://t.me/{os.getenv("BOT_NICKNAME")}?start={message.from_user.id}')
+
+
+class CodeStateGroup(StatesGroup):
+    amount = State()
+
+
+@dp.message_handler(text=['💳 Пополнить баланс'])
+async def cmd_replenish_balance(message: types.Message):
+    await bot.send_message(message.from_user.id, "✏️ Введите сумму для пополнения в USD (долларах):\n\n"
+                                                 "* Для отмены нажмите на кнопку ниже")
+    await CodeStateGroup.amount.set()
+
+
+@dp.message_handler(state=CodeStateGroup.amount)
+async def check_amount(message: types.Message, state: FSMContext):
+    async with state.proxy() as data:
+        data['amount'] = message.text
+        if data['amount'].isalpha():
+            await bot.send_message(message.from_user.id, '❗️ Введите корректное число\n\n'
+                                                         '* Для отмены нажмите на кнопку ниже')
+            await state.finish()
+            await CodeStateGroup.amount.set()
+            return
+        if int(data['amount']) < 10:
+            await bot.send_message(message.from_user.id, '❗️ Минимальная сумма для пополнения: 10$\n\n'
+                                                         '* Для отмены нажмите на кнопку ниже')
+            await state.finish()
+            await CodeStateGroup.amount.set()
+            return
+    response = await cryptomus.create_payment(data['amount'], '10')
+    if not response:
+        await bot.send_message(message.from_user.id, 'Ошибка!')
+        return
+    print(response)
+    await db.create_cryptomus(response, message.from_user.id)
+    await bot.send_message(message.from_user.id, response.result.url)
+
+    await state.finish()
+
 
 if __name__ == '__main__':
     executor.start_polling(dp, skip_updates=True, on_startup=on_startup)

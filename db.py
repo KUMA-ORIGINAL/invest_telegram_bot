@@ -21,6 +21,17 @@ def sql_start():
                  'user_id INTEGER UNIQUE NOT NULL,'
                  'referrer_id INTEGER)')
     base.commit()
+    base.execute('CREATE TABLE IF NOT EXISTS cryptomus('
+                 'id INTEGER PRIMARY KEY,'
+                 'uuid TEXT UNIQUE NOT NULL,'
+                 'order_id TEXT NOT NULL,'
+                 'status TEXT NOT NULL,'
+                 'amount TEXT NOT NULL,'
+                 'payment_amount TEXT,'
+                 'is_final BOOLEAN NOT NULL,'
+                 'url TEXT NOT NULL,'
+                 'chat_id INTEGER NOT NULL)')
+    base.commit()
 
 
 async def create_user(user_id):
@@ -43,3 +54,24 @@ async def add_user(user_id, referrer_id=None):
 
 async def count_referals(user_id):
     return cur.execute(f'SELECT COUNT(id) as count FROM referal_users WHERE referrer_id={user_id}').fetchone()[0]
+
+
+async def create_cryptomus(res, user_id):
+    cur.execute(f'INSERT INTO cryptomus '
+                f'(uuid, '
+                f'order_id, '
+                f'status, '
+                f'amount, '
+                f'payment_amount, '
+                f'is_final, '
+                f'url, '
+                f'chat_id)'
+                f'VALUES '
+                f'({res.result.uuid}, '
+                f'{res.result.order_id}, '
+                f'{res.result.status}, '
+                f'{res.result.amount},'
+                f'{res.result.payer_amount}, '
+                f'{res.result.is_final}, '
+                f'{res.result.url}, '
+                f'{user_id})')
