@@ -165,10 +165,10 @@ async def check_amount(message: types.Message, state: FSMContext):
     await state.finish()
 
 if __name__ == '__main__':
-    executor.start_webhook(dispatcher=dp,
-                           webhook_path=os.getenv('WEBHOOK_PATH'),
-                           skip_updates=True,
-                           on_startup=on_startup,
-                           on_shutdown=on_shutdown,
-                           web_app=app)
+    executor.set_webhook(dispatcher=dp,
+                         webhook_path=os.getenv('WEBHOOK_PATH'),
+                         skip_updates=True,
+                         on_startup=on_startup,
+                         on_shutdown=on_shutdown,
+                         web_app=app)
     web.run_app(app, port=os.getenv('WEBAPP_PORT'), host=os.getenv('WEBAPP_HOST'))
