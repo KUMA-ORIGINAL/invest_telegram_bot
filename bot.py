@@ -26,13 +26,15 @@ app.add_routes(routes)
 
 
 async def on_startup(dp):
+    await bot.set_webhook(f"https://{os.getenv('WEBHOOK_URL')}")
     print('bot online')
     db.sql_start()
-    await bot.set_webhook(os.getenv('WEBHOOK_URL'))
 
 
 async def on_shutdown(dp):
     await bot.delete_webhook()
+    await dp.storage.close()
+    await dp.storage.wait_closed()
     db.sql_close()
 
 
