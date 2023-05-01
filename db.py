@@ -34,6 +34,11 @@ def sql_start():
     base.commit()
 
 
+def sql_close():
+    base.close()
+    cur.close()
+
+
 async def create_user(user_id):
     cur.execute(f'INSERT INTO users (user_id, created) VALUES ({user_id}, {str(datetime.date.today())})')
     base.commit()

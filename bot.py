@@ -33,6 +33,8 @@ async def on_startup(dp):
 
 async def on_shutdown(dp):
     await bot.delete_webhook()
+    db.sql_close()
+
 
 video_cards = ((1, 25), (2, 50), (3, 100), (4, 250), (5, 500), (6, 1000))
 
@@ -167,4 +169,4 @@ if __name__ == '__main__':
                          on_startup=on_startup,
                          on_shutdown=on_shutdown,
                          web_app=app)
-    web.run_app(app, port=os.getenv('WEBHOOK_PORT'), host=os.getenv('WEBHOOK_HOST'))
+    web.run_app(app, port=os.getenv('WEBAPP_PORT'), host=os.getenv('WEBAPP_HOST'))
