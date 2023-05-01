@@ -3,6 +3,7 @@ import os
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import StatesGroup, State
+from aiohttp import web
 from dotenv import load_dotenv, find_dotenv
 
 import cryptomus
@@ -11,6 +12,7 @@ import db
 from aiogram import Dispatcher, Bot, executor, types
 
 from keyboards import get_kb, get_video_cards_ikb, get_profile_kb, get_video_card_ikb
+from web_app import routes
 
 load_dotenv(find_dotenv())
 
@@ -18,10 +20,19 @@ storage = MemoryStorage()
 bot = Bot(token=os.getenv("TOKEN"), parse_mode='HTML')
 dp = Dispatcher(bot, storage=storage)
 
+app = web.Application()
+app['bot'] = bot
+app.add_routes(routes)
 
-async def on_startup(_):
+
+async def on_startup(dp):
     print('bot online')
     db.sql_start()
+    await bot.set_webhook(os.getenv('WEBHOOK_URL'))
+
+
+async def on_shutdown(dp):
+    await bot.delete_webhook()
 
 video_cards = ((1, 25), (2, 50), (3, 100), (4, 250), (5, 500), (6, 1000))
 
@@ -149,6 +160,11 @@ async def check_amount(message: types.Message, state: FSMContext):
 
     await state.finish()
 
-
 if __name__ == '__main__':
-    executor.start_polling(dp, skip_updates=True, on_startup=on_startup)
+    executor.set_webhook(dispatcher=dp,
+                         webhook_path=os.getenv('WEBHOOK_PATH'),
+                         skip_updates=True,
+                         on_startup=on_startup,
+                         on_shutdown=on_shutdown,
+                         web_app=app)
+    web.run_app(app, port=os.getenv('WEBHOOK_PORT'), host=os.getenv('WEBHOOK_HOST'))
