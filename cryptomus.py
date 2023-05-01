@@ -29,6 +29,7 @@ async def create_payment(amount, order_id):
             "amount": str(amount),
             "currency": "USD",
             "order_id": order_id,
+            "url_callback": 'investtelegrambot-production.up.railway.app/api'
         }
         async with aiohttp.ClientSession() as session:
             data = await session.post('https://api.cryptomus.com/v1/payment',
